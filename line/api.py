@@ -40,7 +40,7 @@ class LineAPI(object):
     LINE_CERTIFICATE_URL   = LINE_DOMAIN + "/Q"
     LINE_SESSION_LINE_URL  = LINE_DOMAIN + "/authct/v1/keys/line"
     LINE_SESSION_NAVER_URL = LINE_DOMAIN + "/authct/v1/keys/naver"
-    
+
     CERT_FILE = ".line.crt"
 
     ip          = "127.0.0.1"
@@ -60,7 +60,16 @@ class LineAPI(object):
         After login, make `client` and `client_in` instance
         to communicate with LINE server
         """
-        raise Exception("Code is removed because of the request of LINE corporation")
+        self.transport    = THttpClient.THttpClient(self.LINE_HTTP_URL)
+        self.transport_in = THttpClient.THttpClient(self.LINE_HTTP_IN_URL)
+        self.transport.setCustomHeaders(self._headers)
+        self.transport_in.setCustomHeaders(self._headers)
+        self.protocol    = TCompactProtocol.TCompactProtocol(self.transport)
+        self.protocol_in = TCompactProtocol.TCompactProtocol(self.transport_in)
+        self._client    = CurveThrift.Client(self.protocol)
+        self._client_in = CurveThrift.Client(self.protocol_in)
+        self.transport.open()
+        self.transport_in.open()
 
     def updateAuthToken(self):
         """
@@ -81,7 +90,7 @@ class LineAPI(object):
 
         self.protocol = TCompactProtocol.TCompactProtocol(self.transport)
         self._client  = CurveThrift.Client(self.protocol)
-        
+
     def login(self):
         """Login to LINE server."""
         if self.provider == CurveThrift.Provider.LINE: # LINE
